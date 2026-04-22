@@ -455,7 +455,7 @@ a { color: inherit; }
   background: var(--bg-1); border: 1px solid var(--line);
   border-radius: var(--r-lg); box-shadow: var(--shadow-2); text-align: center;
 }
-.unlock-mark { font-family: var(--type-serif); font-size: 48px; font-style: italic; color: var(--accent); line-height: 1; margin-bottom: 8px; }
+.unlock-mark { width: 64px; height: 64px; object-fit: contain; margin-bottom: 8px; display: block; }
 .unlock-card h2 { font-family: var(--type-serif); font-size: 24px; font-weight: 500; margin: 0 0 4px; letter-spacing: -.01em; }
 .unlock-card p { font-family: var(--type-mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); margin: 0 0 28px; }
 

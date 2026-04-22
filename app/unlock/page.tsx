@@ -31,7 +31,7 @@ export default function UnlockPage() {
   return (
     <div className="unlock-wrap">
       <div className="unlock-card">
-        <div className="unlock-mark">ƒ</div>
+        <img src="/yariel-logo-v2.svg" alt="" className="unlock-mark" />
         <h2>France + Spain &apos;26</h2>
         <p>Enter passphrase</p>
         <form onSubmit={submit}>

@@ -18,9 +18,9 @@ export async function getFxRate(from: string, to: string): Promise<FxResult> {
     return { rate: 1, fetchedAt: new Date(now).toISOString() };
   }
 
-  const url = `https://api.exchangerate.host/latest?base=${encodeURIComponent(
+  const url = `https://api.frankfurter.app/latest?from=${encodeURIComponent(
     from,
-  )}&symbols=${encodeURIComponent(to)}`;
+  )}&to=${encodeURIComponent(to)}`;
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`FX fetch failed: ${res.status}`);
   const json: { rates?: Record<string, number> } = await res.json();

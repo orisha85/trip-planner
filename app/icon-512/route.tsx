@@ -1,25 +1,10 @@
 import { ImageResponse } from "next/og";
-
-export const runtime = "edge";
+import { LOGO_DATA_URL } from "@/lib/logo";
 
 export function GET() {
   return new ImageResponse(
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#fbf8f2",
-        borderRadius: 100,
-        fontSize: 340,
-        fontStyle: "italic",
-        color: "#d85a1c",
-      }}
-    >
-      ƒ
-    </div>,
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={LOGO_DATA_URL} alt="" style={{ width: "100%", height: "100%" }} />,
     { width: 512, height: 512 },
   );
 }
