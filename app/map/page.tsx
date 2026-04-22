@@ -6,10 +6,13 @@ import { formatInTz } from "@/lib/dates";
 export default async function MapPage() {
   const bookings = await listBookings();
 
+  // Skip the first and last bookings — those are the home departure/return flights.
+  const tripBookings = bookings.slice(1, -1);
+
   const pins: MapPin[] = [];
   const lines: MapLine[] = [];
 
-  for (const b of bookings) {
+  for (const b of tripBookings) {
     const fromLat = b.fromLat ? Number(b.fromLat) : null;
     const fromLng = b.fromLng ? Number(b.fromLng) : null;
     const toLat = b.toLat ? Number(b.toLat) : null;
