@@ -108,7 +108,7 @@ export default async function ItineraryPage() {
     <div className="page">
       <div className="page-header">
         <div>
-          <div className="page-title">The <em>itinerary</em></div>
+          <div className="page-title">Mia <em>Itinerary</em></div>
           <div className="page-sub">Day by Day · {TOTAL_DAYS} Days · {bookings.length} Bookings</div>
         </div>
       </div>
