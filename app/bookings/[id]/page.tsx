@@ -2,143 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getBooking } from "@/lib/bookings-repo";
 import { formatMoney, HOME_CURRENCY } from "@/lib/utils";
-import { buttonClass, buttonGhostClass } from "@/components/ui/field";
 import { formatInTz } from "@/lib/dates";
+import { TypeIcon, TYPE_LABEL, TYPE_WATERMARK } from "@/components/type-icon";
 
 function receiptHref(url: string) {
   if (url.includes("private.blob.vercel-storage.com")) {
     return `/api/blob-proxy?url=${encodeURIComponent(url)}`;
   }
   return url;
-}
-
-export default async function BookingDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const b = await getBooking(id);
-  if (!b) notFound();
-
-  const typeLabel = b.type[0].toUpperCase() + b.type.slice(1);
-  const details = (b.details ?? {}) as Record<string, string | undefined>;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="text-xs uppercase tracking-wide text-[color:var(--color-muted)]">
-            {typeLabel}
-          </div>
-          <h1 className="text-2xl font-semibold">{b.title}</h1>
-        </div>
-        <div className="flex gap-2">
-          <Link href={`/bookings/${b.id}/edit`} className={buttonClass}>
-            Edit
-          </Link>
-          <Link href="/itinerary" className={buttonGhostClass}>
-            Back
-          </Link>
-        </div>
-      </div>
-
-      <dl className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
-        <Row label={startLabel(b.type)} value={formatInTz(b.startAt, b.timezone)} />
-        {b.endAt && (
-          <Row label={endLabel(b.type)} value={formatInTz(b.endAt, b.timezone)} />
-        )}
-        {b.fromLocation && (
-          <Row
-            label={b.type === "hotel" || b.type === "activity" ? "Location" : "From"}
-            value={b.fromLocation}
-          />
-        )}
-        {b.toLocation && <Row label="To" value={b.toLocation} />}
-        {b.confirmationCode && (
-          <Row label="Confirmation" value={b.confirmationCode} mono />
-        )}
-        {details.airline && <Row label="Airline" value={details.airline} />}
-        {details.flight_number && (
-          <Row label="Flight #" value={details.flight_number} mono />
-        )}
-        {details.operator && <Row label="Operator" value={details.operator} />}
-        {details.train_number && (
-          <Row label="Train #" value={details.train_number} mono />
-        )}
-        {details.coach && <Row label="Coach" value={details.coach} />}
-        {details.seat && <Row label="Seat" value={details.seat} />}
-        {details.terminal && <Row label="Terminal" value={details.terminal} />}
-        {details.address && <Row label="Address" value={details.address} />}
-        {details.venue && <Row label="Venue" value={details.venue} />}
-        {details.room_type && <Row label="Room" value={details.room_type} />}
-        {b.priceAmount && b.priceCurrency && (
-          <Row
-            label="Price"
-            value={`${formatMoney(b.priceAmount, b.priceCurrency)}${
-              b.priceCad && b.priceCurrency !== HOME_CURRENCY
-                ? `  (${formatMoney(b.priceCad, HOME_CURRENCY)})`
-                : ""
-            }`}
-          />
-        )}
-      </dl>
-
-      {b.notes && (
-        <div>
-          <div className="mb-1 text-sm text-[color:var(--color-muted)]">Notes</div>
-          <p className="whitespace-pre-wrap rounded-md border border-[color:var(--color-border)] bg-[color:var(--color-bg-elev)] p-3 text-sm">
-            {b.notes}
-          </p>
-        </div>
-      )}
-
-      {b.receiptUrl && (
-        <div>
-          <div className="mb-1 text-sm text-[color:var(--color-muted)]">Receipt / Ticket</div>
-          <a
-            href={receiptHref(b.receiptUrl)}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[color:var(--color-accent)] underline"
-          >
-            {b.receiptFilename || "View receipt"}
-          </a>
-        </div>
-      )}
-
-      {details.ticket_url && (
-        <div>
-          <div className="mb-1 text-sm text-[color:var(--color-muted)]">Ticket link</div>
-          <a
-            href={details.ticket_url}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[color:var(--color-accent)] underline"
-          >
-            {details.ticket_url}
-          </a>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-  mono,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <dt className="text-xs text-[color:var(--color-muted)]">{label}</dt>
-      <dd className={mono ? "font-mono text-sm" : "text-sm"}>{value}</dd>
-    </div>
-  );
 }
 
 function startLabel(t: string) {
@@ -151,4 +22,178 @@ function endLabel(t: string) {
   if (t === "hotel") return "Check-out";
   if (t === "activity") return "Ends";
   return "Arrival";
+}
+
+export default async function BookingDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const b = await getBooking(id);
+  if (!b) notFound();
+
+  const details = (b.details ?? {}) as Record<string, string | undefined>;
+  const typeLabel = TYPE_LABEL[b.type] ?? b.type;
+  const watermark = TYPE_WATERMARK[b.type] ?? "";
+
+  const startFmt = formatInTz(b.startAt, b.timezone, "EEE, MMM d · HH:mm zzz");
+  const endFmt = b.endAt ? formatInTz(b.endAt, b.timezone, "EEE, MMM d · HH:mm zzz") : null;
+
+  return (
+    <div className="page" style={{ maxWidth: 960 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+        <Link href="/itinerary" className="btn btn-ghost">← Back</Link>
+        <span className="page-sub" style={{ margin: 0 }}>/ bookings / {b.id}</span>
+      </div>
+
+      <div className="detail-hero">
+        <div className="kind-badge">
+          <TypeIcon type={b.type} size={12} /> {typeLabel}
+        </div>
+        <h1>{b.title}</h1>
+        <div className="subtitle">
+          {startFmt}{endFmt ? ` → ${endFmt}` : ""}
+        </div>
+        <div className="watermark">{watermark}</div>
+      </div>
+
+      <div className="detail-grid">
+        <div>
+          <div className="field-grid">
+            <div>
+              <div className="field-label">{startLabel(b.type)}</div>
+              <div className="field-value">{formatInTz(b.startAt, b.timezone)}</div>
+            </div>
+            {b.endAt && (
+              <div>
+                <div className="field-label">{endLabel(b.type)}</div>
+                <div className="field-value">{formatInTz(b.endAt, b.timezone)}</div>
+              </div>
+            )}
+            {b.fromLocation && (
+              <div>
+                <div className="field-label">{b.type === "hotel" || b.type === "activity" ? "Location" : "From"}</div>
+                <div className="field-value">{b.fromLocation}</div>
+              </div>
+            )}
+            {b.toLocation && (
+              <div>
+                <div className="field-label">To</div>
+                <div className="field-value">{b.toLocation}</div>
+              </div>
+            )}
+            {details.airline && (
+              <div><div className="field-label">Airline</div><div className="field-value">{details.airline}</div></div>
+            )}
+            {details.flight_number && (
+              <div><div className="field-label">Flight #</div><div className="field-value mono">{details.flight_number}</div></div>
+            )}
+            {details.operator && (
+              <div><div className="field-label">Operator</div><div className="field-value">{details.operator}</div></div>
+            )}
+            {details.train_number && (
+              <div><div className="field-label">Train #</div><div className="field-value mono">{details.train_number}</div></div>
+            )}
+            {details.coach && (
+              <div><div className="field-label">Coach</div><div className="field-value mono">{details.coach}</div></div>
+            )}
+            {details.seat && (
+              <div><div className="field-label">Seat</div><div className="field-value mono">{details.seat}</div></div>
+            )}
+            {details.terminal && (
+              <div><div className="field-label">Terminal</div><div className="field-value mono">{details.terminal}</div></div>
+            )}
+            {details.room_type && (
+              <div><div className="field-label">Room type</div><div className="field-value">{details.room_type}</div></div>
+            )}
+            {details.address && (
+              <div className="span-2"><div className="field-label">Address</div><div className="field-value" style={{ fontSize: 15 }}>{details.address}</div></div>
+            )}
+            {details.venue && (
+              <div><div className="field-label">Venue</div><div className="field-value">{details.venue}</div></div>
+            )}
+            {details.ticket_url && (
+              <div className="span-2">
+                <div className="field-label">Ticket URL</div>
+                <div className="field-value mono" style={{ fontSize: 13 }}>
+                  <a href={details.ticket_url} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>{details.ticket_url}</a>
+                </div>
+              </div>
+            )}
+            {b.notes && (
+              <div className="span-2">
+                <div className="field-label">Notes</div>
+                <div className="field-value" style={{ fontSize: 15, lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{b.notes}</div>
+              </div>
+            )}
+          </div>
+
+          <div className="action-row" style={{ padding: "16px 28px", background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: "var(--r-lg)" }}>
+            <Link href={`/bookings/${b.id}/edit`} className="btn btn-primary">Edit</Link>
+            <Link href="/itinerary" className="btn btn-ghost">Back</Link>
+            <div className="spacer" />
+          </div>
+        </div>
+
+        <div>
+          {(b.priceAmount || b.priceCad) && (
+            <div className="aside-card">
+              <h4>Cost</h4>
+              {b.priceAmount && b.priceCurrency && (
+                <div style={{ marginBottom: 12 }}>
+                  <div className="field-label" style={{ fontFamily: "var(--type-mono)", fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 4 }}>Original</div>
+                  <div style={{ fontFamily: "var(--type-serif)", fontSize: 24, letterSpacing: "-.01em" }}>
+                    {formatMoney(b.priceAmount, b.priceCurrency)}
+                    <span style={{ fontFamily: "var(--type-mono)", fontSize: 11, color: "var(--muted)", marginLeft: 6 }}>{b.priceCurrency}</span>
+                  </div>
+                </div>
+              )}
+              {b.priceCad && b.priceCurrency !== HOME_CURRENCY && (
+                <div style={{ borderTop: "1px solid var(--line)", paddingTop: 12 }}>
+                  <div className="field-label" style={{ fontFamily: "var(--type-mono)", fontSize: 9, letterSpacing: ".2em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 4 }}>CAD equivalent</div>
+                  <div style={{ fontFamily: "var(--type-serif)", fontSize: 24, color: "var(--accent)" }}>
+                    {formatMoney(b.priceCad, HOME_CURRENCY)}
+                  </div>
+                </div>
+              )}
+              {b.fxRate && b.priceCurrency && b.priceCurrency !== HOME_CURRENCY && (
+                <div style={{ marginTop: 10, fontFamily: "var(--type-mono)", fontSize: 11, color: "var(--muted)" }}>
+                  FX snapshot: 1 {b.priceCurrency} = {Number(b.fxRate).toFixed(4)} {HOME_CURRENCY}
+                </div>
+              )}
+            </div>
+          )}
+
+          {b.confirmationCode && (
+            <div className="aside-card">
+              <h4>Reference</h4>
+              <div style={{ fontFamily: "var(--type-mono)", fontSize: 14, letterSpacing: ".04em", color: "var(--ink)" }}>{b.confirmationCode}</div>
+            </div>
+          )}
+
+          <div className="aside-card">
+            <h4>Receipt / Ticket</h4>
+            {b.receiptUrl ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 40, height: 50, border: "1px solid var(--line)", borderRadius: 4, background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: "var(--muted)" }}>📄</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <a
+                    href={receiptHref(b.receiptUrl)}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ fontFamily: "var(--type-mono)", fontSize: 12, color: "var(--accent)", wordBreak: "break-all" }}
+                  >
+                    {b.receiptFilename ?? "View receipt"}
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-day" style={{ margin: 0, padding: 12, fontSize: 11 }}>— No receipt —</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

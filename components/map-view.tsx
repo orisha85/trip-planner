@@ -59,7 +59,7 @@ export default function MapView({
   const zoom = pins.length > 0 ? 5 : 5;
 
   return (
-    <div className="h-[70vh] w-full overflow-hidden rounded-md border border-[color:var(--color-border)]">
+    <div style={{ height: "100%", width: "100%", overflow: "hidden", borderRadius: "var(--r-lg)" }}>
       <MapContainer
         center={center}
         zoom={zoom}
@@ -75,23 +75,24 @@ export default function MapView({
             key={l.id}
             positions={[l.from, l.to]}
             pathOptions={{
-              color: l.type === "flight" ? "#7c7cff" : "#22c55e",
+              color: l.type === "flight" ? "#3d68c4" : "#1f8a7a",
               dashArray: l.type === "flight" ? "6 8" : undefined,
-              weight: 2,
+              weight: 2.5,
+              opacity: 0.8,
             }}
           />
         ))}
         {pins.map((p) => (
           <Marker key={p.id} position={[p.lat, p.lng]}>
             <Popup>
-              <div className="space-y-1">
-                <div className="font-medium">{p.title}</div>
+              <div style={{ fontFamily: "var(--type-serif)", fontSize: 14 }}>
+                <div style={{ fontWeight: 500, marginBottom: 4 }}>{p.title}</div>
                 {p.subtitle && (
-                  <div className="text-xs text-gray-600">{p.subtitle}</div>
+                  <div style={{ fontFamily: "var(--type-mono)", fontSize: 10, color: "var(--muted)", marginBottom: 6 }}>{p.subtitle}</div>
                 )}
                 <Link
                   href={`/bookings/${p.id}`}
-                  className="text-xs text-blue-600 underline"
+                  style={{ fontFamily: "var(--type-mono)", fontSize: 10, color: "var(--accent)", textDecoration: "none", letterSpacing: ".05em" }}
                 >
                   Open booking →
                 </Link>

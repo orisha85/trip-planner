@@ -10,10 +10,5 @@ export default async function EditBookingPage({
   const { id } = await params;
   const booking = await getBooking(id);
   if (!booking) notFound();
-  return (
-    <div>
-      <h1 className="mb-6 text-2xl font-semibold">Edit booking</h1>
-      <BookingForm initial={booking} />
-    </div>
-  );
+  return <BookingForm initial={booking} />;
 }

@@ -6,7 +6,7 @@ import type { MapLine, MapPin } from "@/components/map-view";
 const MapView = dynamic(() => import("@/components/map-view"), {
   ssr: false,
   loading: () => (
-    <div className="h-[70vh] w-full animate-pulse rounded-md bg-[color:var(--color-bg-elev)]" />
+    <div style={{ height: "100%", width: "100%", background: "var(--bg-2)", borderRadius: "var(--r-lg)" }} />
   ),
 });
 

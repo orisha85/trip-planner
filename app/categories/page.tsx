@@ -3,12 +3,20 @@ import { listBookings } from "@/lib/bookings-repo";
 import { BOOKING_TYPES } from "@/lib/booking-schema";
 import { formatInTz } from "@/lib/dates";
 import { formatMoney, HOME_CURRENCY } from "@/lib/utils";
+import { TypeIcon } from "@/components/type-icon";
 
-const TYPE_LABEL: Record<string, string> = {
+const TYPE_LABEL_PLURAL: Record<string, string> = {
   flight: "Flights",
   train: "Trains",
   hotel: "Hotels",
   activity: "Activities",
+};
+
+const COLUMNS: Record<string, string[]> = {
+  flight: ["Date", "Flight", "Route", "Seat", "Conf.", "Price"],
+  train: ["Date", "Train", "Route", "Seat", "Conf.", "Price"],
+  hotel: ["Dates", "Hotel", "Location", "Room", "Conf.", "Price"],
+  activity: ["Date", "Activity", "Venue", "Time", "Conf.", "Price"],
 };
 
 export default async function CategoriesPage({
@@ -25,93 +33,107 @@ export default async function CategoriesPage({
   const items = all.filter((b) => b.type === active);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Categories</h1>
+    <div className="page">
+      <div className="page-header">
+        <div>
+          <div className="page-title">By <em>category</em></div>
+          <div className="page-sub">Tables · Filter</div>
+        </div>
+      </div>
 
-      <div className="flex flex-wrap gap-2 border-b border-[color:var(--color-border)]">
-        {BOOKING_TYPES.map((t) => {
-          const isActive = t === active;
+      <div className="cat-tabs">
+        {BOOKING_TYPES.map((type) => {
+          const count = all.filter((b) => b.type === type).length;
           return (
             <Link
-              key={t}
-              href={`/categories?t=${t}`}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm ${
-                isActive
-                  ? "border-[color:var(--color-accent)] text-[color:var(--color-fg)]"
-                  : "border-transparent text-[color:var(--color-muted)] hover:text-[color:var(--color-fg)]"
-              }`}
+              key={type}
+              href={`/categories?t=${type}`}
+              className={`cat-tab${type === active ? " active" : ""}`}
             >
-              {TYPE_LABEL[t]}{" "}
-              <span className="text-xs text-[color:var(--color-muted)]">
-                ({all.filter((b) => b.type === t).length})
-              </span>
+              <TypeIcon type={type} size={14} />
+              {TYPE_LABEL_PLURAL[type]}
+              <span className="cat-count">{count}</span>
             </Link>
           );
         })}
       </div>
 
       {items.length === 0 ? (
-        <div className="rounded-md border border-dashed border-[color:var(--color-border)] p-8 text-center text-sm text-[color:var(--color-muted)]">
-          No {TYPE_LABEL[active].toLowerCase()} yet.
+        <div className="empty-day" style={{ justifyContent: "center", padding: "24px" }}>
+          No {TYPE_LABEL_PLURAL[active].toLowerCase()} yet.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-md border border-[color:var(--color-border)]">
-          <table className="w-full text-sm">
-            <thead className="bg-[color:var(--color-bg-elev)] text-left text-xs uppercase tracking-wide text-[color:var(--color-muted)]">
+        <div style={{ overflowX: "auto", borderRadius: "var(--r-md)" }}>
+          <table className="data-table">
+            <thead>
               <tr>
-                <th className="px-3 py-2">When</th>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Route / Location</th>
-                <th className="px-3 py-2">Price</th>
-                <th className="px-3 py-2">Confirm.</th>
-                <th className="px-3 py-2"></th>
+                {COLUMNS[active].map((col) => <th key={col}>{col}</th>)}
               </tr>
             </thead>
             <tbody>
               {items.map((b) => {
-                const priceLabel =
-                  b.priceAmount && b.priceCurrency
-                    ? `${formatMoney(b.priceAmount, b.priceCurrency)}${
-                        b.priceCad && b.priceCurrency !== HOME_CURRENCY
-                          ? ` / ${formatMoney(b.priceCad, HOME_CURRENCY)}`
-                          : ""
-                      }`
-                    : "—";
+                const details = (b.details ?? {}) as Record<string, string | undefined>;
+                const startFmt = formatInTz(b.startAt, b.timezone, "MMM d");
+                const endFmt = b.endAt ? formatInTz(b.endAt, b.timezone, "MMM d") : null;
+                const priceLabel = b.priceAmount && b.priceCurrency
+                  ? formatMoney(b.priceAmount, b.priceCurrency)
+                  : "—";
+                const cadLabel = b.priceCad && b.priceCurrency !== HOME_CURRENCY
+                  ? formatMoney(b.priceCad, HOME_CURRENCY)
+                  : null;
+
                 return (
-                  <tr
-                    key={b.id}
-                    className="border-t border-[color:var(--color-border)]"
-                  >
-                    <td className="whitespace-nowrap px-3 py-2">
-                      {formatInTz(b.startAt, b.timezone, "MMM d, HH:mm")}
+                  <tr key={b.id}>
+                    {/* Date */}
+                    <td>
+                      <span className="mono">
+                        {b.type === "hotel" && endFmt
+                          ? `${startFmt} – ${endFmt}`
+                          : startFmt}
+                      </span>
                     </td>
-                    <td className="px-3 py-2">
-                      <Link
-                        href={`/bookings/${b.id}`}
-                        className="text-[color:var(--color-accent)] underline"
-                      >
-                        {b.title}
+                    {/* Title */}
+                    <td>
+                      <Link href={`/bookings/${b.id}`} style={{ textDecoration: "none" }}>
+                        <div className="primary">{b.title}</div>
+                        {(b.type === "flight" || b.type === "train") && (
+                          <div className="mono dim" style={{ fontSize: 10, marginTop: 2 }}>
+                            {b.type === "flight" ? details.airline : details.operator}
+                            {(details.flight_number || details.train_number)
+                              ? ` · ${details.flight_number || details.train_number}`
+                              : ""}
+                          </div>
+                        )}
                       </Link>
                     </td>
-                    <td className="px-3 py-2 text-[color:var(--color-muted)]">
-                      {b.fromLocation ?? ""}
-                      {b.toLocation ? ` → ${b.toLocation}` : ""}
-                    </td>
-                    <td className="whitespace-nowrap px-3 py-2">{priceLabel}</td>
-                    <td className="whitespace-nowrap px-3 py-2 font-mono text-xs">
-                      {b.confirmationCode ?? ""}
-                    </td>
-                    <td className="px-3 py-2 text-right">
-                      {b.receiptUrl && (
-                        <a
-                          href={b.receiptUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-xs text-[color:var(--color-accent)] underline"
-                        >
-                          receipt
-                        </a>
+                    {/* Route / Location / Venue */}
+                    <td>
+                      {b.type === "flight" || b.type === "train" ? (
+                        <span className="mono" style={{ fontSize: 12 }}>
+                          {b.fromLocation ?? ""}{b.toLocation ? ` → ${b.toLocation}` : ""}
+                        </span>
+                      ) : b.type === "hotel" ? (
+                        <span className="dim" style={{ fontSize: 12 }}>{b.fromLocation ?? ""}</span>
+                      ) : (
+                        <span className="dim" style={{ fontSize: 12 }}>{details.venue ?? ""}</span>
                       )}
+                    </td>
+                    {/* Seat / Room / Time */}
+                    <td>
+                      <span className="mono">
+                        {b.type === "flight" || b.type === "train"
+                          ? details.seat ?? "—"
+                          : b.type === "hotel"
+                          ? details.room_type ?? "—"
+                          : formatInTz(b.startAt, b.timezone, "HH:mm")}
+                      </span>
+                    </td>
+                    {/* Conf. */}
+                    <td><span className="mono">{b.confirmationCode ?? "—"}</span></td>
+                    {/* Price */}
+                    <td>
+                      <div className="primary" style={{ fontSize: 15 }}>{priceLabel}</div>
+                      {cadLabel && <div className="mono dim" style={{ fontSize: 10 }}>{cadLabel}</div>}
                     </td>
                   </tr>
                 );

@@ -12,23 +12,16 @@ const TABS = [
 export function NavTabs() {
   const path = usePathname() ?? "";
   return (
-    <nav className="flex gap-1">
-      {TABS.map((t) => {
-        const active = path.startsWith(t.href);
-        return (
-          <Link
-            key={t.href}
-            href={t.href}
-            className={`rounded-md px-3 py-1 text-sm transition ${
-              active
-                ? "bg-[color:var(--color-accent)] text-[color:var(--color-accent-fg)]"
-                : "text-[color:var(--color-muted)] hover:bg-[color:var(--color-bg-elev)] hover:text-[color:var(--color-fg)]"
-            }`}
-          >
-            {t.label}
-          </Link>
-        );
-      })}
-    </nav>
+    <div className="tab-list">
+      {TABS.map((t) => (
+        <Link
+          key={t.href}
+          href={t.href}
+          className={`tab${path.startsWith(t.href) ? " active" : ""}`}
+        >
+          {t.label}
+        </Link>
+      ))}
+    </div>
   );
 }

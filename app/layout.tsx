@@ -17,11 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-bg text-fg">
-        <TripHeader />
-        <main className="mx-auto max-w-5xl px-4 pb-24 pt-4 md:px-6">
-          {children}
-        </main>
+      <body>
+        <div aria-hidden className="app-grain" />
+        <div className="app-root">
+          <TripHeader />
+          <main>{children}</main>
+        </div>
       </body>
     </html>
   );
