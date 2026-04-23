@@ -10,7 +10,7 @@ export default async function PackingPage() {
     .orderBy(asc(packingItems.section), asc(packingItems.sortOrder));
 
   return (
-    <div className="page-wrap">
+    <div className="page">
       <div className="page-title">Mia <em>Packing</em></div>
       <PackingList initial={items} />
     </div>
