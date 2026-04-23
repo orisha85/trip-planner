@@ -1,4 +1,4 @@
-const CACHE = "trip-v1";
+const CACHE = "trip-v2";
 
 const SHELL = [
   "/",
