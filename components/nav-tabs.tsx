@@ -7,6 +7,7 @@ const TABS = [
   { href: "/itinerary", label: "Itinerary" },
   { href: "/categories", label: "Categories" },
   { href: "/map", label: "Map" },
+  { href: "/packing", label: "Packing" },
 ];
 
 export function NavTabs() {

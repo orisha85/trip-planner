@@ -6,6 +6,8 @@ import {
   numeric,
   jsonb,
   pgEnum,
+  boolean,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const bookingType = pgEnum("booking_type", [
@@ -55,3 +57,14 @@ export const bookings = pgTable("bookings", {
 export type Booking = typeof bookings.$inferSelect;
 export type NewBooking = typeof bookings.$inferInsert;
 export type BookingType = (typeof bookingType.enumValues)[number];
+
+export const packingItems = pgTable("packing_items", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  section: text("section").notNull().default("General"),
+  label: text("label").notNull(),
+  checked: boolean("checked").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type PackingItem = typeof packingItems.$inferSelect;
