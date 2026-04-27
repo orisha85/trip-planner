@@ -11,7 +11,7 @@ export default async function PackingPage() {
 
   return (
     <div className="page">
-      <div className="page-title">Mia <em>Packing</em></div>
+      <div className="page-title"><em>Packing</em></div>
       <PackingList initial={items} />
     </div>
   );
